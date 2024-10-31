@@ -26,13 +26,13 @@ This project is a Java-based GUI application for managing household expenses. It
 
 ## Screenshots
 
-| Feature                       | Screenshot                                                                 |
-|-------------------------------|-----------------------------------------------------------------------------|
-| Main Window                   | ![Main Window](images/main_window.png)                                      |
-| Add Category                  | ![Add Category](images/add_category.png)                                    |
-| Add Booking                   | ![Add Booking](images/add_booking.png)                                      |
-| Search and Filter             | ![Search and Filter](images/search_filter.png)                              |
-| Custom SQL Query              | ![Custom SQL Query](images/custom_sql.png)                                  |
+| Feature           | Screenshot                                     |
+|-------------------|------------------------------------------------|
+| Main Window       | ![Main Window](images/main_window.png)         |
+| Add Category      | ![Add Category](images/add_category.png)       |
+| Add Booking       | ![Add Booking](images/add_booking.png)         |
+| Search and Filter | ![Search and Filter](images/search_filter.png) |
+| Custom SQL Query  | ![Custom SQL Query](images/custom_sql.png)     |
 
 ## Prerequisites
 

@@ -208,9 +208,12 @@ public class HaushaltsbuchGUI extends JFrame {
     private void loadCategories() {
         categoryDropdown.removeAllItems();
         try (Statement stmt = conn.createStatement()) {
-            ResultSet rs = stmt.executeQuery("SELECT Bezeichnung FROM Kategorie");
+            ResultSet rs = stmt.executeQuery("SELECT Bezeichnung, Einzahlung_Auszahlung FROM Kategorie");
             while (rs.next()) {
-                categoryDropdown.addItem(rs.getString("Bezeichnung"));
+                String bezeichnung = rs.getString("Bezeichnung");
+                int einAus = rs.getInt("Einzahlung_Auszahlung");
+                String suffix = (einAus == TransactionType.EINZAHLUNG.getValue()) ? " (E)" : " (A)";
+                categoryDropdown.addItem(bezeichnung + suffix);
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -268,6 +271,11 @@ public class HaushaltsbuchGUI extends JFrame {
     }
 
     private int getCategoryID(String category) throws SQLException {
+        // Remove the suffix "(A)" or "(E)" from the category name
+        if (category.endsWith(" (A)") || category.endsWith(" (E)")) {
+            category = category.substring(0, category.length() - 4);
+        }
+
         String sql = "SELECT ID FROM Kategorie WHERE Bezeichnung = ?";
         PreparedStatement pstmt = conn.prepareStatement(sql);
         pstmt.setString(1, category);

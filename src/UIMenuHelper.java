@@ -31,6 +31,36 @@ public class UIMenuHelper {
         TableColumn einAusColumn = categoryTable.getColumnModel().getColumn(3);
         einAusColumn.setCellEditor(new DefaultCellEditor(new JComboBox<>(TransactionType.values())));
 
+        // Add a listener to save changes to the database
+        categoryTable.getModel().addTableModelListener(e -> {
+            int row = e.getFirstRow();
+            int column = e.getColumn();
+            if (column != -1) {
+                int id = (int) tableModel.getValueAt(row, 0);
+                String bezeichnung = (String) tableModel.getValueAt(row, 1);
+                String kurzbeschreibung = (String) tableModel.getValueAt(row, 2);
+                TransactionType einAus = (TransactionType) tableModel.getValueAt(row, 3);
+
+                try {
+                    String sql = "UPDATE Kategorie SET Bezeichnung = ?, Kurzbeschreibung = ?, Einzahlung_Auszahlung = ? WHERE ID = ?";
+                    PreparedStatement pstmt = conn.prepareStatement(sql);
+                    pstmt.setString(1, bezeichnung);
+                    pstmt.setString(2, kurzbeschreibung);
+                    pstmt.setInt(3, einAus.getValue());
+                    pstmt.setInt(4, id);
+                    pstmt.executeUpdate();
+
+                    // Update the dropdown in the main UI
+                    loadCategories.run();
+                    loadData.run();
+
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                    UIHelper.showErrorDialog(categoryFrame, "Fehler beim Aktualisieren der Kategorie!");
+                }
+            }
+        });
+
         // Panel for adding new categories
         JPanel addCategoryPanel = new JPanel(new GridLayout(4, 2));
         JTextField bezeichnungField = new JTextField();
@@ -45,6 +75,11 @@ public class UIMenuHelper {
 
             if (bezeichnung.isEmpty()) {
                 UIHelper.showErrorDialog(categoryFrame, "Bezeichnung darf nicht leer sein!");
+                return;
+            }
+
+            if (categoryExists(conn, bezeichnung, einAus)) {
+                UIHelper.showErrorDialog(categoryFrame, "Kategorie mit diesem Namen und Typ existiert bereits!");
                 return;
             }
 
@@ -64,6 +99,7 @@ public class UIMenuHelper {
 
                 // Update the dropdown in the main UI
                 loadCategories.run();
+                loadData.run();
 
             } catch (SQLException ex) {
                 ex.printStackTrace();
@@ -127,6 +163,7 @@ public class UIMenuHelper {
 
                         // Update the dropdown in the main UI
                         loadCategories.run();
+                        loadData.run();
 
                     } catch (SQLException ex) {
                         ex.printStackTrace();
@@ -160,6 +197,22 @@ public class UIMenuHelper {
         categoryFrame.setLocationRelativeTo(parent); // Center the frame relative to the parent
         categoryFrame.setVisible(true);
         categoryFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+    }
+
+    private static boolean categoryExists(Connection conn, String bezeichnung, TransactionType einAus) {
+        try {
+            String sql = "SELECT COUNT(*) FROM Kategorie WHERE Bezeichnung = ? AND Einzahlung_Auszahlung = ?";
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, bezeichnung);
+            pstmt.setInt(2, einAus.getValue());
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next() && rs.getInt(1) > 0) {
+                return true;
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+        return false;
     }
 
     private static void loadCategoriesIntoTable(Connection conn, DefaultTableModel tableModel) {
